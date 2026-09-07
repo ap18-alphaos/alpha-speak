@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>ALPHA Speak</title>
+<style>
+  :root{--base:#070B14;--panel:#0D1526;--panel2:#111C33;--line:#1C2A45;--text:#E7EEF9;--muted:#8497B4;--blue:#2E9BFF;--cyan:#22D3EE;--good:#34D399;--warn:#FB7185;--gold:#FBBF24}
+  *{box-sizing:border-box}html,body{height:100%}
+  body{margin:0;background:var(--base);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}
+  header{padding:14px 16px 8px}
+  .kick{font-size:12px;letter-spacing:2px;color:var(--cyan)}
+  .stat{font-size:12px;color:var(--good);margin-top:2px}
+  #stream{flex:1;overflow-y:auto;padding:8px 14px;display:flex;flex-direction:column;gap:12px}
+  .row{max-width:88%}.ai{align-self:flex-start}.me{align-self:flex-end}
+  .bub{padding:11px 14px;font-size:15px;line-height:1.5}
+  .ai .bub{background:var(--panel);border:1px solid var(--line);border-radius:4px 16px 16px 16px;box-shadow:0 0 0 1px #2E9BFF22,0 0 16px #2E9BFF33}
+  .me .bub{background:linear-gradient(135deg,var(--blue),#1D6FD6);color:#fff;border-radius:16px 4px 16px 16px}
+  .link{background:none;border:none;color:var(--cyan);font-size:12px;cursor:pointer;padding:4px 2px}
+  .hint{color:var(--muted);font-size:13px;font-style:italic}
+  .corr{margin-top:5px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px}
+  .corr .o{color:var(--warn);text-decoration:line-through}.corr .f{color:var(--good);font-weight:600}.corr .t{color:var(--muted);margin-top:2px}
+  .err{color:var(--warn);font-size:13px;padding:6px 16px}
+  footer{padding:10px 14px;display:flex;gap:8px;align-items:flex-end}
+  textarea{flex:1;resize:none;max-height:110px;padding:12px 14px;border-radius:13px;background:var(--panel);border:1px solid var(--line);color:var(--text);font-size:15px;outline:none;font-family:inherit}
+  textarea:focus{border-color:var(--blue);box-shadow:0 0 0 1px #2E9BFF55}
+  #send{padding:12px 18px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#04101F;font-weight:700;font-size:15px;cursor:pointer}
+  #send:disabled{background:var(--panel2);color:var(--muted)}
+</style>
+</head>
+<body>
+<header><div class="kick">ALPHA · SPEAK</div><div class="stat">● teu backend · conversa em ingles</div></header>
+<div id="stream"></div>
+<div id="err" class="err" style="display:none"></div>
+<footer><textarea id="in" rows="1" placeholder="Write in English..."></textarea><button id="send">Enviar</button></footer>
+<script>
+var CHAT='https://sitadzzbtanfederqlec.supabase.co/functions/v1/chat';
+var INSTR='You are a warm English conversation partner for a Brazilian Portuguese speaker practicing to become fluent. Reply in natural, spoken English, SHORT (1-3 sentences), and ALWAYS end with a question to keep the chat going. Correct real, useful mistakes in their last message; empty list if fine. They may write in Portuguese when stuck; still reply in English and lean on the hint. Reply to EVERY message with ONLY a valid JSON object, no markdown, no backticks: {"reply":"...","hint_pt":"short natural Portuguese translation","corrections":[{"original":"...","fixed":"...","tip_pt":"short reason in Portuguese"}]}';
+var history=[];
+var stream=document.getElementById('stream'),input=document.getElementById('in'),sendBtn=document.getElementById('send'),errBox=document.getElementById('err');
+function esc(s){var d=document.createElement('div');d.textContent=(s==null?'':s);return d.innerHTML;}
+function scroll(){stream.scrollTop=stream.scrollHeight;}
+function addAI(reply,hint){var r=document.createElement('div');r.className='row ai';r.innerHTML='<div class="bub">'+esc(reply)+'</div><button class="link">ver em portugues</button>

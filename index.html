@@ -8,9 +8,14 @@
   :root{--base:#070B14;--panel:#0D1526;--panel2:#111C33;--line:#1C2A45;--text:#E7EEF9;--muted:#8497B4;--blue:#2E9BFF;--cyan:#22D3EE;--good:#34D399;--warn:#FB7185;--gold:#FBBF24}
   *{box-sizing:border-box}html,body{height:100%}
   body{margin:0;background:var(--base);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}
-  header{padding:14px 16px 8px}
+  header{padding:14px 16px 10px}
   .kick{font-size:12px;letter-spacing:2px;color:var(--cyan)}
-  .stat{font-size:12px;color:var(--good);margin-top:2px}
+  .nav{display:flex;gap:8px;margin-top:10px}
+  .tab{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer}
+  .tab.on{background:var(--panel2);color:var(--text);border-color:var(--blue)}
+  .badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--cyan);color:#04101F;font-size:12px;margin-left:4px}
+  .badge.zero{display:none}
+  #chatView,#reviewView{flex:1;display:flex;flex-direction:column;min-height:0}
   #stream{flex:1;overflow-y:auto;padding:8px 14px;display:flex;flex-direction:column;gap:12px}
   .row{max-width:88%}.ai{align-self:flex-start}.me{align-self:flex-end}
   .bub{padding:11px 14px;font-size:15px;line-height:1.5}
@@ -23,49 +28,86 @@
   .corr .o{color:var(--warn);text-decoration:line-through}.corr .f{color:var(--good);font-weight:600}.corr .t{color:var(--muted);margin-top:2px}
   .sug{align-self:stretch;display:flex;flex-direction:column;gap:8px;margin-top:2px}
   .sug .lbl{font-size:12px;color:var(--muted);margin-bottom:2px}
-  .chip{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 13px;color:var(--text);cursor:pointer;transition:border-color .15s,transform .15s}
-  .chip:active{transform:scale(.99)}
-  .chip .en{font-size:15px;font-weight:600}
-  .chip .cpt{font-size:12px;color:var(--muted);margin-top:2px}
+  .chip{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px 13px;color:var(--text);cursor:pointer}
+  .chip .en{font-size:15px;font-weight:600}.chip .cpt{font-size:12px;color:var(--muted);margin-top:2px}
   .err{color:var(--warn);font-size:13px;padding:6px 16px}
   footer{padding:10px 14px}
   .ptbtn{width:100%;padding:11px;border:1px dashed var(--line);border-radius:12px;background:transparent;color:var(--cyan);font-size:13px;cursor:pointer;margin-bottom:8px}
-  .ptbtn.on{border-style:solid;border-color:var(--cyan);background:#0c2330;color:var(--cyan)}
+  .ptbtn.on{border-style:solid;border-color:var(--cyan);background:#0c2330}
   .inrow{display:flex;gap:8px;align-items:flex-end}
   textarea{flex:1;resize:none;max-height:110px;padding:12px 14px;border-radius:13px;background:var(--panel);border:1px solid var(--line);color:var(--text);font-size:15px;outline:none;font-family:inherit}
   textarea:focus{border-color:var(--blue);box-shadow:0 0 0 1px #2E9BFF55}
   #send{padding:12px 18px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#04101F;font-weight:700;font-size:15px;cursor:pointer}
   #send:disabled{background:var(--panel2);color:var(--muted)}
+  .rev{padding:16px;display:flex;flex-direction:column;height:100%}
+  .revcount{font-size:13px;color:var(--muted);margin-bottom:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px 18px;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;box-shadow:0 0 0 1px #2E9BFF22,0 0 20px #2E9BFF22}
+  .card .lbl{font-size:11px;color:var(--cyan);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+  .card .q{font-size:24px;font-weight:700;line-height:1.3}
+  .card .ans{margin-top:20px;font-size:19px;color:var(--good);font-weight:600}
+  .card .ansnote{margin-top:10px;font-size:14px;color:var(--muted)}
+  .show{width:100%;padding:15px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#04101F;font-weight:700;font-size:16px;cursor:pointer;margin-top:14px}
+  .revbtns{display:flex;gap:10px;margin-top:14px}
+  .revbtns button{flex:1;padding:16px;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer;background:transparent}
+  .miss{color:var(--warn);border:1px solid var(--warn)}
+  .hit{color:var(--good);border:1px solid var(--good)}
+  .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:24px}
+  .empty .big{font-size:44px;margin-bottom:12px}
 </style>
 </head>
 <body>
-<header><div class="kick">ALPHA · SPEAK</div><div class="stat">● teu backend · conversa em ingles</div></header>
-<div id="stream"></div>
-<div id="err" class="err" style="display:none"></div>
-<footer>
-  <button id="ptbtn" class="ptbtn">✍️ Não sei escrever — quero digitar em português</button>
-  <div class="inrow"><textarea id="in" rows="1" placeholder="Write in English..."></textarea><button id="send">Enviar</button></div>
-</footer>
+<header>
+  <div class="kick">ALPHA · SPEAK</div>
+  <div class="nav"><button id="tabChat" class="tab on">Conversa</button><button id="tabRev" class="tab">Revisar<span id="badge" class="badge zero"></span></button></div>
+</header>
+
+<div id="chatView">
+  <div id="stream"></div>
+  <div id="err" class="err" style="display:none"></div>
+  <footer>
+    <button id="ptbtn" class="ptbtn">✍️ Não sei escrever — quero digitar em português</button>
+    <div class="inrow"><textarea id="in" rows="1" placeholder="Write in English..."></textarea><button id="send">Enviar</button></div>
+  </footer>
+</div>
+
+<div id="reviewView" style="display:none"><div id="reviewBody"></div></div>
+
 <script>
 var CHAT='https://sitadzzbtanfederqlec.supabase.co/functions/v1/chat';
-var convo=[],ptMode=false,busy=false;
-var stream=document.getElementById('stream'),input=document.getElementById('in'),sendBtn=document.getElementById('send'),errBox=document.getElementById('err'),ptbtn=document.getElementById('ptbtn');
+var REVIEW='https://sitadzzbtanfederqlec.supabase.co/functions/v1/review';
+var convo=[],ptMode=false,busy=false,queue=[],qi=0;
+var stream=document.getElementById('stream'),input=document.getElementById('in'),sendBtn=document.getElementById('send'),errBox=document.getElementById('err'),ptbtn=document.getElementById('ptbtn'),tabChat=document.getElementById('tabChat'),tabRev=document.getElementById('tabRev'),badge=document.getElementById('badge');
 function esc(s){var d=document.createElement('div');d.textContent=(s==null?'':s);return d.innerHTML;}
 function scroll(){stream.scrollTop=stream.scrollHeight;}
 function showErr(m){errBox.textContent='Erro: '+m;errBox.style.display='block';}
 function clrErr(){errBox.style.display='none';}
 function clrSug(){var e=document.getElementById('sug');if(e)e.remove();}
-function addMe(t,ptNote){var r=document.createElement('div');r.className='row me';var h='<div class="bub">'+esc(t)+'</div>';r.innerHTML=h;if(ptNote){var n=document.createElement('div');n.className='menote';n.textContent='você quis dizer: '+ptNote;r.appendChild(n);}stream.appendChild(r);scroll();return r;}
+function addMe(t,ptNote){var r=document.createElement('div');r.className='row me';r.innerHTML='<div class="bub">'+esc(t)+'</div>';if(ptNote){var n=document.createElement('div');n.className='menote';n.textContent='você quis dizer: '+ptNote;r.appendChild(n);}stream.appendChild(r);scroll();return r;}
 function addCorr(row,c){if(!c||!c.length)return;var w=document.createElement('div');w.className='corr';var html='';for(var i=0;i<c.length;i++){html+='<div><span class="o">'+esc(c[i].original)+'</span> &rarr; <span class="f">'+esc(c[i].fixed)+'</span>'+(c[i].tip_pt?'<div class="t">'+esc(c[i].tip_pt)+'</div>':'')+'</div>';}w.innerHTML=html;row.appendChild(w);scroll();}
 function addAI(reply,hint,suggestions){var r=document.createElement('div');r.className='row ai';r.innerHTML='<div class="bub">'+esc(reply)+'</div><button class="link">ver em portugues</button><div class="hint" style="display:none">'+esc(hint)+'</div>';var b=r.querySelector('.link'),h=r.querySelector('.hint');b.onclick=function(){var on=h.style.display==='none';h.style.display=on?'block':'none';b.textContent=on?'esconder':'ver em portugues';};stream.appendChild(r);renderSug(suggestions);scroll();}
 function renderSug(list){clrSug();if(!list||!list.length)return;var w=document.createElement('div');w.id='sug';w.className='sug';var lbl=document.createElement('div');lbl.className='lbl';lbl.textContent='Toque pra responder:';w.appendChild(lbl);for(var i=0;i<list.length;i++){(function(item){var c=document.createElement('div');c.className='chip';c.innerHTML='<div class="en">'+esc(item.en)+'</div><div class="cpt">'+esc(item.pt)+'</div>';c.onclick=function(){doSend(item.en);};w.appendChild(c);})(list[i]);}stream.appendChild(w);scroll();}
-async function doSend(enText,ptNote){if(busy)return;var text=(enText||'').trim();if(!text)return;busy=true;sendBtn.disabled=true;clrErr();clrSug();addMe(text,ptNote);var msgs=convo.concat([{role:'user',content:text}]);try{var res=await fetch(CHAT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:msgs})});var data=await res.json();if(!res.ok||data.error){showErr(data.error||('HTTP '+res.status));return;}var last=stream.querySelectorAll('.row.me');addCorr(last[last.length-1],data.corrections);addAI(data.reply,data.hint_pt,data.suggestions);convo.push({role:'user',content:text});convo.push({role:'assistant',content:data.reply});}catch(e){showErr((e&&e.message)||'falha de rede');}finally{busy=false;sendBtn.disabled=false;}}
-async function translateAndSend(pt){if(busy)return;busy=true;sendBtn.disabled=true;clrErr();try{var res=await fetch(CHAT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({translate:pt})});var data=await res.json();if(!res.ok||data.error){showErr(data.error||('HTTP '+res.status));busy=false;sendBtn.disabled=false;return;}busy=false;sendBtn.disabled=false;doSend(data.en,pt);}catch(e){showErr((e&&e.message)||'falha de rede');busy=false;sendBtn.disabled=false;}}
+async function doSend(enText,ptNote){if(busy)return;var text=(enText||'').trim();if(!text)return;busy=true;sendBtn.disabled=true;clrErr();clrSug();addMe(text,ptNote);var msgs=convo.concat([{role:'user',content:text}]);try{var res=await fetch(CHAT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:msgs})});var data=await res.json();if(!res.ok||data.error){showErr(data.error||('HTTP '+res.status));return;}var mes=stream.querySelectorAll('.row.me');addCorr(mes[mes.length-1],data.corrections);addAI(data.reply,data.hint_pt,data.suggestions);convo.push({role:'user',content:text});convo.push({role:'assistant',content:data.reply});refreshBadge();}catch(e){showErr((e&&e.message)||'falha de rede');}finally{busy=false;sendBtn.disabled=false;}}
+async function translateAndSend(pt){if(busy)return;busy=true;sendBtn.disabled=true;clrErr();try{var res=await fetch(CHAT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({translate:pt})});var data=await res.json();busy=false;sendBtn.disabled=false;if(!res.ok||data.error){showErr(data.error||('HTTP '+res.status));return;}doSend(data.en,pt);}catch(e){showErr((e&&e.message)||'falha de rede');busy=false;sendBtn.disabled=false;}}
 function onSend(){var v=input.value.trim();if(!v)return;input.value='';if(ptMode){translateAndSend(v);}else{doSend(v);}}
 sendBtn.onclick=onSend;
 input.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();onSend();}});
 ptbtn.onclick=function(){ptMode=!ptMode;if(ptMode){ptbtn.className='ptbtn on';ptbtn.textContent='🇧🇷 Modo português ativado — toque pra voltar ao inglês';input.placeholder='Escreva em português...';}else{ptbtn.className='ptbtn';ptbtn.textContent='✍️ Não sei escrever — quero digitar em português';input.placeholder='Write in English...';}};
+async function api(payload){var r=await fetch(REVIEW,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});return r.json();}
+async function refreshBadge(){try{var d=await api({action:'count'});var n=(d&&d.due)||0;badge.textContent=n;badge.className='badge'+(n?'':' zero');}catch(e){}}
+function showView(which){document.getElementById('chatView').style.display=which==='chat'?'flex':'none';document.getElementById('reviewView').style.display=which==='review'?'flex':'none';tabChat.className='tab'+(which==='chat'?' on':'');tabRev.className='tab'+(which==='review'?' on':'');if(which==='review')loadReview();}
+tabChat.onclick=function(){showView('chat');};
+tabRev.onclick=function(){showView('review');};
+async function loadReview(){var body=document.getElementById('reviewBody');body.innerHTML='<div class="empty">Carregando...</div>';try{var d=await api({action:'due'});queue=(d&&d.items)||[];qi=0;if(!queue.length){renderEmpty();}else{renderCard();}}catch(e){body.innerHTML='<div class="empty">Erro ao carregar. Toque em Revisar de novo.</div>';}}
+function renderEmpty(){document.getElementById('reviewBody').innerHTML='<div class="empty"><div class="big">✅</div><div>Nada pra revisar agora.</div><div style="margin-top:6px">Os itens novos voltam no dia certo. Continue conversando pra criar mais.</div></div>';refreshBadge();}
+function renderCard(){var it=queue[qi];var lbl=it.kind==='correction'?'correção':'frase';var body=document.getElementById('reviewBody');body.innerHTML='<div class="rev"><div class="revcount">Item '+(qi+1)+' de '+queue.length+' — lembra o significado?</div><div class="card"><div class="lbl">'+lbl+'</div><div class="q">'+esc(it.back)+'</div><div class="ans" id="ans" style="display:none"></div><div class="ansnote" id="ansnote" style="display:none"></div></div><button class="show" id="showBtn">Mostrar resposta</button><div class="revbtns" id="revbtns" style="display:none"><button class="miss" id="missBtn">Errei</button><button class="hit" id="hitBtn">Acertei</button></div></div>';
+var answerMain=it.kind==='phrase'?it.front:(it.note_pt||'Forma correta acima');
+var answerNote=it.kind==='phrase'?'':(it.front?'antes: '+it.front:'');
+document.getElementById('showBtn').onclick=function(){var a=document.getElementById('ans');a.textContent=answerMain;a.style.display='block';if(answerNote){var nn=document.getElementById('ansnote');nn.textContent=answerNote;nn.style.display='block';}this.style.display='none';document.getElementById('revbtns').style.display='flex';};
+document.getElementById('missBtn').onclick=function(){grade(it.id,false);};
+document.getElementById('hitBtn').onclick=function(){grade(it.id,true);};}
+async function grade(id,correct){try{await api({action:'grade',id:id,correct:correct});}catch(e){}qi++;if(qi>=queue.length){document.getElementById('reviewBody').innerHTML='<div class="empty"><div class="big">🎉</div><div>Revisão concluída!</div><div style="margin-top:6px">Você revisou '+queue.length+' '+(queue.length===1?'item':'itens')+'. Volte amanhã pra fixar.</div></div>';refreshBadge();}else{renderCard();}}
 addAI("Hi! I'm your practice partner. How are you today?","Oi! Sou seu parceiro de treino. Como você está hoje?",[{en:"I'm good, thanks!",pt:"Estou bem, obrigado!"},{en:"I'm a little tired.",pt:"Estou um pouco cansado."},{en:"Not bad. And you?",pt:"Nada mal. E você?"}]);
+refreshBadge();
 </script>
 </body>
 </html>

@@ -40,4 +40,15 @@ var history=[];
 var stream=document.getElementById('stream'),input=document.getElementById('in'),sendBtn=document.getElementById('send'),errBox=document.getElementById('err');
 function esc(s){var d=document.createElement('div');d.textContent=(s==null?'':s);return d.innerHTML;}
 function scroll(){stream.scrollTop=stream.scrollHeight;}
-function addAI(reply,hint){var r=document.createElement('div');r.className='row ai';r.innerHTML='<div class="bub">'+esc(reply)+'</div><button class="link">ver em portugues</button>
+function addAI(reply,hint){var r=document.createElement('div');r.className='row ai';r.innerHTML='<div class="bub">'+esc(reply)+'</div><button class="link">ver em portugues</button><div class="hint" style="display:none">'+esc(hint)+'</div>';var b=r.querySelector('.link'),h=r.querySelector('.hint');b.onclick=function(){var on=h.style.display==='none';h.style.display=on?'block':'none';b.textContent=on?'esconder':'ver em portugues';};stream.appendChild(r);scroll();}
+function addMe(t){var r=document.createElement('div');r.className='row me';r.innerHTML='<div class="bub">'+esc(t)+'</div>';stream.appendChild(r);scroll();return r;}
+function addCorr(row,c){if(!c||!c.length)return;var w=document.createElement('div');w.className='corr';var html='';for(var i=0;i<c.length;i++){html+='<div><span class="o">'+esc(c[i].original)+'</span> &rarr; <span class="f">'+esc(c[i].fixed)+'</span>'+(c[i].tip_pt?'<div class="t">'+esc(c[i].tip_pt)+'</div>':'')+'</div>';}w.innerHTML=html;row.appendChild(w);scroll();}
+function showErr(m){errBox.textContent='Erro: '+m;errBox.style.display='block';}
+function clrErr(){errBox.style.display='none';}
+async function send(){var text=input.value.trim();if(!text)return;clrErr();input.value='';var myRow=addMe(text);sendBtn.disabled=true;var msgs=[{role:'user',content:INSTR},{role:'assistant',content:'Understood. I will reply only with the JSON object.'}].concat(history).concat([{role:'user',content:text}]);try{var res=await fetch(CHAT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:msgs})});var data=await res.json();if(!res.ok||data.error){showErr(data.error||('HTTP '+res.status));sendBtn.disabled=false;return;}var parts=[];for(var i=0;i<(data.content||[]).length;i++){if(data.content[i].type==='text')parts.push(data.content[i].text);}var raw=parts.join('\n').replace(/\u0060\u0060\u0060json|\u0060\u0060\u0060/g,'').trim();var out;try{out=JSON.parse(raw);}catch(e){showErr('Formato inesperado.');sendBtn.disabled=false;return;}addCorr(myRow,out.corrections);addAI(out.reply,out.hint_pt);history.push({role:'user',content:text});history.push({role:'assistant',content:out.reply});}catch(e){showErr((e&&e.message)||'falha de rede');}finally{sendBtn.disabled=false;}}
+sendBtn.onclick=send;
+input.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+addAI("Hey! I'm running on your own backend now. How are you today?","E ai! Agora to rodando no teu proprio backend. Como voce esta hoje?");
+</script>
+</body>
+</html>
